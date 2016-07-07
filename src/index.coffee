@@ -3,7 +3,10 @@ KefirBus = require 'kefir-bus'
 deepAssign = require 'deep-assign'
 
 module.exports = makeCollectionStream = (items) ->
-    collection$ = KefirBus()
+    _collection$ = KefirBus()
+
+    collection$ = _collection$.toProperty()
+    collection$.emit = _collection$.emit
 
     # Keep last_items on collection$
     collection$.onValue (_items) ->
@@ -13,8 +16,16 @@ module.exports = makeCollectionStream = (items) ->
     collection$.item$s = {}
     collection$.getItem$ = (item_id) ->
         if !(item$ = collection$.item$s[item_id])
-            item$ = KefirBus()
+            _item$ = KefirBus()
+            item$ = _item$.toProperty()
+            item$.emit = _item$.emit
+            item$.onValue -> # NOOP to activate property
             collection$.item$s[item_id] = item$
+        return item$
+
+    collection$.setItem$ = (item_id, item) ->
+        item$ = collection$.getItem$ item_id
+        item$.emit item
         return item$
 
     # Update an item by finding it in items and emitting on both overall and individual stream
@@ -26,21 +37,25 @@ module.exports = makeCollectionStream = (items) ->
         item$ = collection$.getItem$(item_id)
         collection$.emit items
         item$.emit item
+        return item$
 
     # Create an item by adding it to items and creating a stream for it
     collection$.createItem = (new_item) ->
         items = collection$.last_items
         items.push new_item
         collection$.emit items
-        return collection$.getItem$ new_item._id
+        return collection$.setItem$ new_item._id, new_item
 
     # Remove an item from items
     collection$.removeItem = (item_id) ->
         items = collection$.last_items
         items = items.filter((item) -> item._id != item_id)
         collection$.emit items
+        return collection$
 
     # Add initial items and return
     collection$.emit items
+    items.map (item) ->
+        item$ = collection$.setItem$(item._id, item)
     return collection$
 
