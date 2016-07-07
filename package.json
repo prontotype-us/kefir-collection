@@ -1,0 +1,21 @@
+{
+    "name": "kefir-collection",
+    "version": "0.1.0",
+    "repository": {
+        "type": "git",
+        "url": "http://github.com/prontotype-us/kefir-collection"
+    },
+    "main": "lib/index.js",
+    "scripts": {
+        "build": "cjsx --bare -o lib -c src"
+    },
+    "dependencies": {
+        "deep-assign": "2.0.0",
+        "kefir": "3.2.x",
+        "kefir-bus": "2.1.x"
+    },
+    "keywords": [
+        "kefir",
+        "collection"
+    ]
+}
