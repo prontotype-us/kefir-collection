@@ -12,7 +12,7 @@ npm install kefir-collection
 
 Create a collection stream with `KefirCollection(items)`. This stream has a few helper functions for managing items:
 
-* `getItem$(item_id)` Returns a stream for an individual item
+* `getItem(item_id)` Returns a stream for an individual item
 * `updateItem(item_id, update)` Updates the item, returns individual stream for the updated item
 * `createItem(new_item)` Creates a new item, returns individual stream for the created item
 * `removeItem(item_id)` Removes an item, returns the overall items stream
@@ -31,7 +31,7 @@ items$ = KefirCollection [
 items$.onValue (items) ->
     console.log '\n[items]', items
 
-items$.getItem$(123).onValue (item) ->
+items$.getItem(123).onValue (item) ->
     console.log '\n[item 123]', item
 
 # Run some operations

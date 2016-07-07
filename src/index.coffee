@@ -14,7 +14,7 @@ module.exports = makeCollectionStream = (items) ->
 
     # Individual streams per item
     collection$.item$s = {}
-    collection$.getItem$ = (item_id) ->
+    collection$.getItem = (item_id) ->
         if !(item$ = collection$.item$s[item_id])
             _item$ = KefirBus()
             item$ = _item$.toProperty()
@@ -23,8 +23,8 @@ module.exports = makeCollectionStream = (items) ->
             collection$.item$s[item_id] = item$
         return item$
 
-    collection$.setItem$ = (item_id, item) ->
-        item$ = collection$.getItem$ item_id
+    collection$.setItem = (item_id, item) ->
+        item$ = collection$.getItem item_id
         item$.emit item
         return item$
 
@@ -34,7 +34,7 @@ module.exports = makeCollectionStream = (items) ->
         item = items.filter((item) -> item._id == item_id)[0]
         return if !item? # TODO: Handle nonexistent items
         deepAssign item, update
-        item$ = collection$.getItem$(item_id)
+        item$ = collection$.getItem(item_id)
         collection$.emit items
         item$.emit item
         return item$
@@ -44,7 +44,7 @@ module.exports = makeCollectionStream = (items) ->
         items = collection$.last_items
         items.push new_item
         collection$.emit items
-        return collection$.setItem$ new_item._id, new_item
+        return collection$.setItem new_item._id, new_item
 
     # Remove an item from items
     collection$.removeItem = (item_id) ->
@@ -56,6 +56,6 @@ module.exports = makeCollectionStream = (items) ->
     # Add initial items and return
     collection$.emit items
     items.map (item) ->
-        item$ = collection$.setItem$(item._id, item)
+        item$ = collection$.setItem(item._id, item)
     return collection$
 
