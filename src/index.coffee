@@ -29,6 +29,10 @@ module.exports = makeCollectionStream = (items=[]) ->
     collection$ = _collection$.toProperty()
     collection$.emit = _collection$.emit
 
+    collection$.plug = (items$) ->
+        items$.onValue (items) ->
+            collection$.setItems items, true
+
     # Keep last_items on collection$
     collection$.onValue (_items) ->
         collection$.last_items = _items
@@ -53,9 +57,7 @@ module.exports = makeCollectionStream = (items=[]) ->
 
     collection$.setItems = (items, append=false) ->
         if append
-            console.log 'from this many', collection$.last_items.length
             [all_items, new_items] = mergeArrays collection$.last_items, items
-            console.log 'to this many', all_items.length
             collection$.emit all_items
 
             new_items.map (item) ->
@@ -78,8 +80,6 @@ module.exports = makeCollectionStream = (items=[]) ->
         item = collection$._getItem item_id
 
         if !item?
-            console.log '[updateItem] WARNING: No item', item_id
-            # TODO: Handle nonexistent items
             update._id = item_id
             return collection$.createItem update
 
