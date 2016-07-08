@@ -1,8 +1,29 @@
 Kefir = require 'kefir'
 KefirBus = require 'kefir-bus'
-deepAssign = require 'deep-assign'
+# deepAssign = require 'deep-assign'
 
-module.exports = makeCollectionStream = (items) ->
+assign = (old_object, new_object) ->
+    for k, v of new_object
+        old_object[k] = v
+    old_object
+
+mergeArrays = (old_array, new_array) ->
+    merged_array = []
+    items_by_id = []
+    new_items = []
+    for item in old_array
+        items_by_id[item._id] = item
+    for item in new_array
+        if existing_item = items_by_id[item._id]
+            assign existing_item, item
+        else
+            items_by_id[item._id] = item
+            new_items.push item
+    for item_id, item of items_by_id
+        merged_array.push item
+    return [merged_array, new_items]
+
+module.exports = makeCollectionStream = (items=[]) ->
     _collection$ = KefirBus()
 
     collection$ = _collection$.toProperty()
@@ -11,6 +32,13 @@ module.exports = makeCollectionStream = (items) ->
     # Keep last_items on collection$
     collection$.onValue (_items) ->
         collection$.last_items = _items
+
+    collection$.filterItems = (filter) ->
+        collection$.map (items) ->
+            items.filter filter
+
+    collection$._getItem = (item_id) ->
+        items.filter((item) -> item._id == item_id)[0]
 
     # Individual streams per item
     collection$.item$s = {}
@@ -23,17 +51,39 @@ module.exports = makeCollectionStream = (items) ->
             collection$.item$s[item_id] = item$
         return item$
 
-    collection$.setItem = (item_id, item) ->
-        item$ = collection$.getItem item_id
+    collection$.setItems = (items, append=false) ->
+        if append
+            console.log 'from this many', collection$.last_items.length
+            [all_items, new_items] = mergeArrays collection$.last_items, items
+            console.log 'to this many', all_items.length
+            collection$.emit all_items
+
+            new_items.map (item) ->
+                item$ = collection$.setItem(item)
+
+        else
+            collection$.emit items
+
+            items.map (item) ->
+                item$ = collection$.setItem(item)
+
+    collection$.setItem = (item) ->
+        item$ = collection$.getItem item._id
         item$.emit item
         return item$
 
     # Update an item by finding it in items and emitting on both overall and individual stream
     collection$.updateItem = (item_id, update) ->
         items = collection$.last_items
-        item = items.filter((item) -> item._id == item_id)[0]
-        return if !item? # TODO: Handle nonexistent items
-        deepAssign item, update
+        item = collection$._getItem item_id
+
+        if !item?
+            console.log '[updateItem] WARNING: No item', item_id
+            # TODO: Handle nonexistent items
+            update._id = item_id
+            return collection$.createItem update
+
+        assign item, update
         item$ = collection$.getItem(item_id)
         collection$.emit items
         item$.emit item
@@ -44,18 +94,16 @@ module.exports = makeCollectionStream = (items) ->
         items = collection$.last_items
         items.push new_item
         collection$.emit items
-        return collection$.setItem new_item._id, new_item
+        return collection$.setItem new_item
 
     # Remove an item from items
     collection$.removeItem = (item_id) ->
         items = collection$.last_items
-        items = items.filter((item) -> item._id != item_id)
+        items = items.filter (item) -> item._id != item_id
         collection$.emit items
         return collection$
 
     # Add initial items and return
-    collection$.emit items
-    items.map (item) ->
-        item$ = collection$.setItem(item._id, item)
+    collection$.setItems items
     return collection$
 

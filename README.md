@@ -12,6 +12,7 @@ npm install kefir-collection
 
 Create a collection stream with `KefirCollection(items)`. This stream has a few helper functions for managing items:
 
+* `setItems(item_id, merge=false)` Sets the collection's items, optionally merging with existing items
 * `getItem(item_id)` Returns a stream for an individual item
 * `updateItem(item_id, update)` Updates the item, returns individual stream for the updated item
 * `createItem(new_item)` Creates a new item, returns individual stream for the created item
