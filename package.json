@@ -1,6 +1,6 @@
 {
     "name": "kefir-collection",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "repository": {
         "type": "git",
         "url": "http://github.com/prontotype-us/kefir-collection"
@@ -10,7 +10,6 @@
         "build": "cjsx --bare -o lib -c src"
     },
     "dependencies": {
-        "deep-assign": "2.0.0",
         "kefir": "3.2.x",
         "kefir-bus": "2.1.x"
     },
