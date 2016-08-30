@@ -8,7 +8,7 @@ assign = (old_object, new_object) ->
 
 mergeArrays = (old_array, new_array, id_key) ->
     merged_array = []
-    items_by_id = []
+    items_by_id = {}
     new_items = []
     for item in old_array
         items_by_id[item[id_key]] = item
@@ -32,6 +32,7 @@ module.exports = makeCollectionStream = (items=[], options={}) ->
 
     collection$.plug = (items$) ->
         items$.onValue (items) ->
+            console.log 'help me items', items
             collection$.setItems items, true
 
     # Keep last_items on collection$
