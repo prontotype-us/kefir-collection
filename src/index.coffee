@@ -32,7 +32,6 @@ module.exports = makeCollectionStream = (items=[], options={}) ->
 
     collection$.plug = (items$) ->
         items$.onValue (items) ->
-            console.log 'help me items', items
             collection$.setItems items, true
 
     # Keep last_items on collection$
