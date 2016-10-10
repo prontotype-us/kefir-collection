@@ -6,7 +6,12 @@ assign = (old_object, new_object) ->
         old_object[k] = v
     old_object
 
-mergeArrays = (old_array, new_array, id_key) ->
+sortBy = (key) -> (o1, o2) ->
+    o1[key] - o2[key]
+
+mergeArrays = (old_array, new_array, id_key, sort_key) ->
+    old_array ||= []
+    sort_key ||= id_key
     merged_array = []
     items_by_id = {}
     new_items = []
@@ -20,10 +25,13 @@ mergeArrays = (old_array, new_array, id_key) ->
             new_items.push item
     for item_id, item of items_by_id
         merged_array.push item
+    merged_array.sort(sortBy sort_key)
     return [merged_array, new_items]
 
-module.exports = makeCollectionStream = (items=[], options={}) ->
-    id_key = options.id_key || '_id'
+module.exports = makeCollectionStream = (initial_items=null, options={}) ->
+    items = initial_items || []
+    {id_key, sort_key} = options
+    id_key ||= 'id'
 
     _collection$ = KefirBus()
 
@@ -58,7 +66,7 @@ module.exports = makeCollectionStream = (items=[], options={}) ->
 
     collection$.setItems = (items, append=false) ->
         if append
-            [all_items, new_items] = mergeArrays collection$.last_items, items, id_key
+            [all_items, new_items] = mergeArrays collection$.last_items, items, id_key, sort_key
             collection$.emit all_items
 
             new_items.map (item) ->
@@ -105,6 +113,7 @@ module.exports = makeCollectionStream = (items=[], options={}) ->
         return collection$
 
     # Add initial items and return
-    collection$.setItems items
+    if initial_items?
+        collection$.setItems initial_items
     return collection$
 
