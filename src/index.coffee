@@ -3,9 +3,12 @@ KefirBus = require 'kefir-bus'
 
 assign = (old_object, new_object) ->
     for k, v of new_object
-        if typeof v == 'object' and push_v = v['$push']
+        if v? and (typeof v == 'object') and push_v = v['$push']
             old_object[k] ||= []
-            old_object[k].push push_v
+            if Array.isArray old_object[k]
+                old_object[k].push push_v
+            else
+                old_object[k] = v
         else
             old_object[k] = v
     old_object
