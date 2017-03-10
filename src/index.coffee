@@ -58,7 +58,7 @@ module.exports = makeCollectionStream = (initial_items=null, options={}) ->
             items.filter filter
 
     collection$._getItem = (item_id) ->
-        items.filter((item) -> item[id_key] == item_id)[0]
+        collection$.last_items.filter((item) -> item[id_key] == item_id)[0]
 
     # Individual streams per item
     collection$.item$s = {}
